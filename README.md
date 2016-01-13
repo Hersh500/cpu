@@ -47,7 +47,7 @@ Here's a really concise description of all of the parts of the cache program (pi
 ##Virtual Memory
 
 ###Background: 
-	The only memory that is actually available to the processor is the main memory, different segments of which will be used by various processes, or user programs. However, the OS wants to give the illusion to all processes that they have the entire main memory available to them. It does this by providing each process with virtual address space. 
+The only memory that is actually available to the processor is the main memory, different segments of which will be used by various processes, or user programs. However, the OS wants to give the illusion to all processes that they have the entire main memory available to them. It does this by providing each process with virtual address space. 
 Virtual memory is divided into contiguous segments, called pages. A structure called the page table maps virtual memory page addresses into physical addresses. When a process makes a call, say to store some data in some virtual address, the processor looks up the physical address and stores the data in the corresponding page in physical memory. 
 	Each process is given its own memory space. This memory space is usually divided into a couple of different sections. One section is reserved for the code, or the actual instructions that the processor has to execute for the program. Some is for the stack, or the local variables stored in each function in the program. The rest is for the data of the program, such as global variables. 
 
@@ -72,7 +72,7 @@ To actually obtain useful data, the processor must look up information in main m
 The first is the page table. This is a ‘large’ section of memory that contains the mappings of all virtual addresses into physical addresses. Because it is stored in main memory, accessing the page table is quite slow. Therefore, the processor caches certain translations in the translation lookaside buffer.  It functions similarly to the cache described above; it is a smaller piece of SRAM memory that the processor checks before translating any virtual address into a physical address. 
 
 ###My implementation: 
-	I implemented the TLB as a chained linked-list hash table. 
+I implemented the TLB as a chained linked-list hash table. 
 	
 •	The methods init_tlb(), size_of_hash_list(), add_to_hash_list(), and hash() are just helper methods. 
 
@@ -85,11 +85,11 @@ The first is the page table. This is a ‘large’ section of memory that contai
 ##Physical Memory
 
 ###Background
-	There isn’t much to explain for the background of physical memory. It is divided up into pages, much like virtual memory. However, this is memory that is “shared” amongst the OS and all the other processes running on the computer. 
+There isn’t much to explain for the background of physical memory. It is divided up into pages, much like virtual memory. However, this is memory that is “shared” amongst the OS and all the other processes running on the computer. 
 
 ###My implementation
 	
-	There are two pertinent programs here: mem_api.c and phys_mem.c
+There are two pertinent programs here: mem_api.c and phys_mem.c
 •	My implementation uses sockets to simulate the memory bus. This way, the processor program can make requests to the physical memory program, which is running simultaneously.
 
 •	The structure mem_op represents a memory operation. It contains the address, data, and the request. The memory itself is represented as an array of bytes. 
