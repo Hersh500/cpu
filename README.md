@@ -1,10 +1,10 @@
-#A simulator for a simple RISC CPU in C 
+# A simulator for a simple RISC CPU in C 
 
 Before discussing the cpu module, we’ll first discuss a couple of the critical components. 
 
-##Cache 
+## Cache 
 
-###Background: 
+### Background: 
 The cache is one of the fundamental building blocks of the modern CPU. To speed up performance, the processor will typically load information that is accessed from main memory into the cache. 
 
 When the processor wants to get some data from main memory, it checks first whether or not that data is in the cache (if it is found in the cache, it’s called a cache hit). 
@@ -16,7 +16,7 @@ There are three different ways to implement a cache. Two of them are direct-hit 
 Each of these has their own benefits and drawbacks. In direct hit, it is easy to locate data, but problems arise when writing to the cache, because there may be more conflicts (data is already in the cache, but you have to write to that location). 
 In fully-associative, writing to the cache is easy, but locating a particular index is hard because the entire cache may have to be crawled.
 
-###My implementation:
+### My implementation:
 In my implementation, I combine these two into a 4-way set associative cache. 
 What that essentially means is that for each tag, there are four possible sets that the data could be in. 
 This is the best compromise between a direct-hit cache and fully associative. 
@@ -44,14 +44,14 @@ Here's a really concise description of all of the parts of the cache program (pi
 
 •	invalidate is a method meant to simulate what happens when the CPU first boots. Since the cache has to be empty on startup (but it may not be; the memory could be set to any random sequence), the processor will just invalidate all lines in the cache. 
 
-##Virtual Memory
+## Virtual Memory
 
-###Background: 
+### Background: 
 The only memory that is actually available to the processor is the main memory, different segments of which will be used by various processes, or user programs. However, the OS wants to give the illusion to all processes that they have the entire main memory available to them. It does this by providing each process with virtual address space. 
 Virtual memory is divided into contiguous segments, called pages. A structure called the page table maps virtual memory page addresses into physical addresses. When a process makes a call, say to store some data in some virtual address, the processor looks up the physical address and stores the data in the corresponding page in physical memory. 
 	Each process is given its own memory space. This memory space is usually divided into a couple of different sections. One section is reserved for the code, or the actual instructions that the processor has to execute for the program. Some is for the stack, or the local variables stored in each function in the program. The rest is for the data of the program, such as global variables. 
 
-###My implementation: 
+### My implementation: 
 •	The lookup_page_table() function indexes into a page table (that is passed in) and locates the corresponding pmd and pte structures. From this, it can find the corresponding physical address. If the address is not found, then it returns -1. This is called a page fault. 
 
 •	The function create_free_pool() takes in a physical address and the number of pages to allocate, and allocates a new virtual address space. It also initializes a bitset, which is just a string of bits, used in this case to keep track of which pages are valid (have valid data stored in them). 
@@ -64,14 +64,14 @@ Virtual memory is divided into contiguous segments, called pages. A structure ca
 
 •	create_addr_space() simulates the creation of a new process in memory. It takes in the virtual addresses of the code, data, and stack sections, as well as their sizes. It then initializes a structure that represents a process’s memory space (see vm.h -> mm_struct). It then goes through and calls allocate_memory() for the code, data, and stack sections, building the page table along the way. 
 
-##TLB (Translation Lookaside Buffer)
+## TLB (Translation Lookaside Buffer)
 
-###Background:
+### Background:
 To actually obtain useful data, the processor must look up information in main memory, which is addressed using physical addresses. However, the processor assigns each process a virtual address space to use. Therefore, to load or store data into physical memory, the processor has to translate a process’s virtual address into a physical address. There are two locations in which these translations are stored. 
 	
 The first is the page table. This is a ‘large’ section of memory that contains the mappings of all virtual addresses into physical addresses. Because it is stored in main memory, accessing the page table is quite slow. Therefore, the processor caches certain translations in the translation lookaside buffer.  It functions similarly to the cache described above; it is a smaller piece of SRAM memory that the processor checks before translating any virtual address into a physical address. 
 
-###My implementation: 
+### My implementation: 
 I implemented the TLB as a chained linked-list hash table. 
 	
 •	The methods init_tlb(), size_of_hash_list(), add_to_hash_list(), and hash() are just helper methods. 
@@ -82,12 +82,12 @@ I implemented the TLB as a chained linked-list hash table.
 
 •	Similar to the cache, we need a way to invalidate entries at startup; naïve_invalidate() does this. 
 
-##Physical Memory
+## Physical Memory
 
-###Background
+### Background
 There isn’t much to explain for the background of physical memory. It is divided up into pages, much like virtual memory. However, this is memory that is “shared” amongst the OS and all the other processes running on the computer. 
 
-###My implementation
+### My implementation
 	
 There are two pertinent programs here: mem_api.c and phys_mem.c
 •	My implementation uses sockets to simulate the memory bus. This way, the processor program can make requests to the physical memory program, which is running simultaneously.
@@ -102,9 +102,9 @@ There are two pertinent programs here: mem_api.c and phys_mem.c
 
 •	mem_write_32 functions in a similar manner; it takes in a physical address and some data, and sends a write request to the physical memory. If either method gets a failure, this program will throw a bus error. 
 
-##CPU
+## CPU
 
-###Background
+### Background
 
 This is where everything gets put together. The CPU itself is actually quite simple. It simply follows a constant loop of fetching instructions and executing them. 
 The CPU typically has a set of instructions that it can execute, called an instruction set. For this project, I created my own instruction set, which follows a RISC paradigm. Typically, most instructions are either 32-bit of 64-bit quantities. MIPS has three different types of instructions: R, I, and J. Each starts, with a 6-bit opcode, and the differences in each refers to the number of registers the instruction operates on. R type instructions operate on 3 registers; I on 2, and J just on an address. 
@@ -117,7 +117,7 @@ If it is a jump, it will simply modify the address at the program counter.
 When executing processes, a CPU typically also has to do context switches, where it will save the register values and other data for one process, and then switch to executing another process. 
 It does many of these switches per second, to give the illusion that it is executing all of these processes simultaneously. 
 
-###My implementation 
+### My implementation 
 •	On “startup”, my simulation resets the cache, tlb, loads a process into main memory, and loads the address for that process (which I’ve hard coded into the program) into the program counter. It then goes into a loop of fetching and executing instructions (I have the functions for context switching written, but haven’t implemented them into the CPU functionality)
 
 •	My instruction set is structured as such: the first 8 bits are reserved for the opcode, or the actual command. Then, there are 4 bits for the src register, dst register, and target register each. The final 12 bits are for any immediate values (take a look at program1 and see if you can tell what it does). The possible opcodes themselves are listed in the “instructions” array. 
